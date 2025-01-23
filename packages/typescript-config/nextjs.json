@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "plugins": [{ "name": "next" }],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "jsx": "preserve",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "preserveSymlinks": false,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "strictNullChecks": true,
+    "noFallthroughCasesInSwitch": true,
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
+}
+
+   

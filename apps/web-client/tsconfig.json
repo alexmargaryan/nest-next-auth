@@ -1,0 +1,16 @@
+{
+  "extends": "@nest-next-auth/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    "next.config.ts",
+    ".next/types/**/*.ts"
+  ]
+}
