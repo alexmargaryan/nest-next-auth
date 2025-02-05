@@ -6,11 +6,18 @@ import { AuthService } from "./auth.service";
 import { GoogleStrategy } from "./google/google.strategy";
 import { JwtTokenModule } from "./jwt-token/jwt-token.module";
 import { JwtStrategy } from "./jwt/jwt.strategy";
+import { RefreshJwtStrategy } from "./jwt/refresh-jwt.strategy";
 import { PasswordService } from "./password.service";
 
 @Module({
   imports: [JwtTokenModule, UsersModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, PasswordService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RefreshJwtStrategy,
+    GoogleStrategy,
+    PasswordService,
+  ],
 })
 export class AuthModule {}

@@ -1,7 +1,6 @@
 import { Response } from "express";
 
 import { ApiConfigService } from "@/config/config.service";
-import { UserResponseDto } from "@/resources/users/dto/user.dto";
 import { Body, Controller, Get, Post, Res, UseGuards } from "@nestjs/common";
 import { ApiOkResponse } from "@nestjs/swagger";
 
@@ -10,6 +9,7 @@ import { CurrentUser } from "./decorators/current-user.decorator";
 import { Public } from "./decorators/public.decorator";
 import { SigninDto, SignupDto } from "./dto/signin.dto";
 import { GoogleAuthGuard } from "./google/google-auth.guard";
+import { RefreshJwtAuthGuard } from "./jwt/refresh-jwt-auth.guard";
 
 @Public()
 @Controller("auth")
@@ -29,7 +29,6 @@ export class AuthController {
     return this.authService.signup(dto);
   }
 
-  @Public()
   @Get("google/login")
   @UseGuards(GoogleAuthGuard)
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -43,13 +42,19 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @ApiOkResponse()
   async googleCallback(
-    @CurrentUser() user: UserResponseDto,
+    @CurrentUser("id") userId: string,
     @Res() res: Response
   ) {
-    const response = await this.authService.googleLogin(user.id);
+    const response = await this.authService.googleLogin(userId);
 
     res.redirect(
       `${this.apiConfigService.webClientUrl}?token=${response.accessToken}`
     );
+  }
+
+  @Post("refresh")
+  @UseGuards(RefreshJwtAuthGuard)
+  async refreshToken(@CurrentUser("id") userId: string) {
+    return this.authService.refreshToken(userId);
   }
 }

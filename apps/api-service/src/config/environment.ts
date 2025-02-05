@@ -16,7 +16,10 @@ const environmentValidationSchema = z.object({
 
   JWT_PUBLIC_KEY: z.string().default(""),
   JWT_PRIVATE_KEY: z.string().default(""),
-  ACCESS_TOKEN_EXPIRES_IN: z.string().default("7d"),
+  ACCESS_TOKEN_EXPIRES_IN: z.string().default("15m"),
+  REFRESH_JWT_PUBLIC_KEY: z.string().default(""),
+  REFRESH_JWT_PRIVATE_KEY: z.string().default(""),
+  REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
 
   GOOGLE_CLIENT_ID: z.string().default(""),
   GOOGLE_CLIENT_SECRET: z.string().default(""),

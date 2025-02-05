@@ -17,8 +17,25 @@ export class JwtTokenService {
       type: JwtTokenType.Access,
     };
 
+    // We don't need to pass the private key here
+    // because we have a separate config for that
     const options: JwtSignOptions = {
       expiresIn: this.configService.accessTokenExpiresIn,
+      algorithm: "ES512",
+    };
+
+    return this.generateToken(tokenPayload, options);
+  }
+
+  public generateRefreshToken(userId: string) {
+    const tokenPayload: JwtPayload = {
+      sub: userId,
+      type: JwtTokenType.Refresh,
+    };
+
+    const options: JwtSignOptions = {
+      expiresIn: this.configService.refreshTokenExpiresIn,
+      privateKey: this.configService.refreshJwtPrivateKey,
       algorithm: "ES512",
     };
 

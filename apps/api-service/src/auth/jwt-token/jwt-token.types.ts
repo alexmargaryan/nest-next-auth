@@ -1,9 +1,10 @@
 export enum JwtTokenType {
   Access = "ACCESS",
+  Refresh = "REFRESH",
 }
 
 export type JwtPayload = {
   sub: string;
-  type: JwtTokenType.Access;
+  type: JwtTokenType;
   exp?: number;
 };

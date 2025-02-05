@@ -4,7 +4,7 @@ import { UsersService } from "@/resources/users/users.service";
 import { Injectable } from "@nestjs/common";
 
 import { SigninDto, SignupDto, SignupSchema } from "./dto/signin.dto";
-import { TokenDto } from "./dto/token.dto";
+import { AccessTokenDto, TokenDto } from "./dto/token.dto";
 import { GoogleUserResponseDto } from "./google/google.types";
 import { JwtTokenService } from "./jwt-token/jwt-token.service";
 import { PasswordService } from "./password.service";
@@ -72,9 +72,11 @@ export class AuthService {
     }
 
     const accessToken = this.jwtTokenService.generateAccessToken(user.id);
+    const refreshToken = this.jwtTokenService.generateRefreshToken(user.id);
 
     return {
       accessToken,
+      refreshToken,
     };
   }
 
@@ -111,13 +113,31 @@ export class AuthService {
     });
 
     const accessToken = this.jwtTokenService.generateAccessToken(user.id);
+    const refreshToken = this.jwtTokenService.generateRefreshToken(user.id);
 
     return {
       accessToken,
+      refreshToken,
     };
   }
 
   async googleLogin(userId: string): Promise<TokenDto> {
+    const user = await this.usersService.findOne(userId);
+
+    if (!user) {
+      throw new NotFoundException("Invalid user credentials");
+    }
+
+    const accessToken = this.jwtTokenService.generateAccessToken(user.id);
+    const refreshToken = this.jwtTokenService.generateRefreshToken(user.id);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async refreshToken(userId: string): Promise<AccessTokenDto> {
     const user = await this.usersService.findOne(userId);
 
     if (!user) {
