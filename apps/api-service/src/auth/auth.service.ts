@@ -1,13 +1,18 @@
-import { BadRequestException, NotFoundException } from "@/common/errors";
+import {
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+} from "@/common/errors";
 import { PrismaService } from "@/prisma/prisma.service";
 import { UsersService } from "@/resources/users/users.service";
 import { Injectable } from "@nestjs/common";
 
 import { SigninDto, SignupDto, SignupSchema } from "./dto/signin.dto";
-import { AccessTokenDto, TokenDto } from "./dto/token.dto";
+import { TokenDto } from "./dto/token.dto";
 import { GoogleUserResponseDto } from "./google/google.types";
 import { JwtTokenService } from "./jwt-token/jwt-token.service";
 import { PasswordService } from "./password.service";
+import { RefreshTokenService } from "./refresh-token.service";
 
 @Injectable()
 export class AuthService {
@@ -15,6 +20,7 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly jwtTokenService: JwtTokenService,
     private readonly passwordService: PasswordService,
+    private readonly refreshTokenService: RefreshTokenService,
     private readonly usersService: UsersService
   ) {}
 
@@ -51,6 +57,26 @@ export class AuthService {
     return user;
   }
 
+  async validateRefreshToken(userId: string, refreshToken: string) {
+    const user = await this.usersService.findOne(userId);
+
+    if (!user?.refreshToken) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    const isRefreshTokenValid =
+      await this.refreshTokenService.compareRefreshToken(
+        refreshToken,
+        user.refreshToken
+      );
+
+    if (!isRefreshTokenValid) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    return user;
+  }
+
   async signin(dto: SigninDto): Promise<TokenDto> {
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -59,7 +85,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException("Invalid user credentials");
+      throw new UnauthorizedException("Invalid user credentials");
     }
 
     const isPasswordValid = await this.passwordService.comparePassword(
@@ -68,11 +94,15 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new NotFoundException("Invalid user credentials");
+      throw new UnauthorizedException("Invalid user credentials");
     }
 
-    const accessToken = this.jwtTokenService.generateAccessToken(user.id);
-    const refreshToken = this.jwtTokenService.generateRefreshToken(user.id);
+    const { accessToken, refreshToken } = this.generateTokens(user.id);
+
+    const hashedRefreshToken =
+      await this.refreshTokenService.hashRefreshToken(refreshToken);
+
+    await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
 
     return {
       accessToken,
@@ -112,8 +142,12 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const accessToken = this.jwtTokenService.generateAccessToken(user.id);
-    const refreshToken = this.jwtTokenService.generateRefreshToken(user.id);
+    const { accessToken, refreshToken } = this.generateTokens(user.id);
+
+    const hashedRefreshToken =
+      await this.refreshTokenService.hashRefreshToken(refreshToken);
+
+    await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
 
     return {
       accessToken,
@@ -125,11 +159,15 @@ export class AuthService {
     const user = await this.usersService.findOne(userId);
 
     if (!user) {
-      throw new NotFoundException("Invalid user credentials");
+      throw new UnauthorizedException("Invalid user credentials");
     }
 
-    const accessToken = this.jwtTokenService.generateAccessToken(user.id);
-    const refreshToken = this.jwtTokenService.generateRefreshToken(user.id);
+    const { accessToken, refreshToken } = this.generateTokens(user.id);
+
+    const hashedRefreshToken =
+      await this.refreshTokenService.hashRefreshToken(refreshToken);
+
+    await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
 
     return {
       accessToken,
@@ -137,17 +175,43 @@ export class AuthService {
     };
   }
 
-  async refreshToken(userId: string): Promise<AccessTokenDto> {
+  async refreshToken(userId: string): Promise<TokenDto> {
     const user = await this.usersService.findOne(userId);
 
     if (!user) {
-      throw new NotFoundException("Invalid user credentials");
+      throw new UnauthorizedException("Invalid user credentials");
     }
 
-    const accessToken = this.jwtTokenService.generateAccessToken(user.id);
+    const { accessToken, refreshToken } = this.generateTokens(user.id);
+
+    const hashedRefreshToken =
+      await this.refreshTokenService.hashRefreshToken(refreshToken);
+
+    await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
 
     return {
       accessToken,
+      refreshToken,
+    };
+  }
+
+  async logOut(userId: string): Promise<void> {
+    const user = await this.usersService.findOne(userId);
+
+    if (!user) {
+      throw new UnauthorizedException("Invalid user credentials");
+    }
+
+    await this.usersService.updateRefreshToken(user.id, null);
+  }
+
+  private generateTokens(userId: string): TokenDto {
+    const accessToken = this.jwtTokenService.generateAccessToken(userId);
+    const refreshToken = this.jwtTokenService.generateRefreshToken(userId);
+
+    return {
+      accessToken,
+      refreshToken,
     };
   }
 }

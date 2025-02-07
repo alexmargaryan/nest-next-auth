@@ -27,4 +27,8 @@ export class UsersService {
   async removeUser(id: string) {
     return this.usersRepository.removeUser(id);
   }
+
+  async updateRefreshToken(id: string, refreshToken: string | null) {
+    return this.usersRepository.updateRefreshToken(id, refreshToken);
+  }
 }

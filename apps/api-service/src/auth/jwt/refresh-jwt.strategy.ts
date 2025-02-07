@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
 
 import { UnauthorizedException } from "@/common/errors";
@@ -22,19 +23,25 @@ export class RefreshJwtStrategy extends PassportStrategy(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: apiConfigService.refreshJwtPublicKey,
+      passReqToCallback: true,
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(req: Request, payload: JwtPayload) {
     if (payload.type !== JwtTokenType.Refresh) {
       throw new UnauthorizedException(USER_CREDENTIALS_NOT_FOUND_ERROR_MESSAGE);
     }
 
-    const user = await this.authService.validateJwtUser(payload.sub);
+    const refreshToken = req.headers.authorization?.replace("Bearer ", "");
 
-    if (!user) {
+    if (!refreshToken) {
       throw new UnauthorizedException(USER_CREDENTIALS_NOT_FOUND_ERROR_MESSAGE);
     }
+
+    const user = await this.authService.validateRefreshToken(
+      payload.sub,
+      refreshToken
+    );
 
     return user;
   }

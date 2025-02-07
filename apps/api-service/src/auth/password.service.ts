@@ -16,11 +16,11 @@ export class PasswordService {
     password: string,
     hashedPassword: string
   ): Promise<boolean> {
-    return await compare(password, hashedPassword);
+    return compare(password, hashedPassword);
   }
 
   async hashPassword(password: string): Promise<string> {
-    return await hash(password, 10);
+    return hash(password, 10);
   }
 
   generateRandomPassword(length = 12, isNumeric = false): string {

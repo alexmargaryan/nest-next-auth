@@ -25,6 +25,7 @@ import type {
   CreateUserDto,
   SigninDto,
   SignupDto,
+  TokenDto,
   UpdateUserDto,
   UserResponseDto,
 } from "./";
@@ -157,7 +158,7 @@ export const authControllerSignin = (
   signinDto: SigninDto,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<void>({
+  return axiosInstance<TokenDto>({
     url: `/api/auth/signin`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -221,7 +222,7 @@ export const authControllerSignup = (
   signupDto: SignupDto,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<void>({
+  return axiosInstance<TokenDto>({
     url: `/api/auth/signup`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -529,6 +530,248 @@ export function useAuthControllerGoogleCallback<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getAuthControllerGoogleCallbackQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const authControllerRefreshToken = (signal?: AbortSignal) => {
+  return axiosInstance<TokenDto>({
+    url: `/api/auth/refresh`,
+    method: "POST",
+    signal,
+  });
+};
+
+export const getAuthControllerRefreshTokenMutationOptions = <
+  TData = Awaited<ReturnType<typeof authControllerRefreshToken>>,
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<TData, TError, void, TContext>;
+}) => {
+  const mutationKey = ["authControllerRefreshToken"];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof authControllerRefreshToken>>,
+    void
+  > = () => {
+    return authControllerRefreshToken();
+  };
+
+  return { mutationFn, ...mutationOptions } as UseMutationOptions<
+    TData,
+    TError,
+    void,
+    TContext
+  >;
+};
+
+export type AuthControllerRefreshTokenMutationResult = NonNullable<
+  Awaited<ReturnType<typeof authControllerRefreshToken>>
+>;
+
+export type AuthControllerRefreshTokenMutationError = unknown;
+
+export const useAuthControllerRefreshToken = <
+  TData = Awaited<ReturnType<typeof authControllerRefreshToken>>,
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<TData, TError, void, TContext>;
+}): UseMutationResult<TData, TError, void, TContext> => {
+  const mutationOptions = getAuthControllerRefreshTokenMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
+
+export const authControllerLogout = (signal?: AbortSignal) => {
+  return axiosInstance<void>({
+    url: `/api/auth/logout`,
+    method: "POST",
+    signal,
+  });
+};
+
+export const getAuthControllerLogoutMutationOptions = <
+  TData = Awaited<ReturnType<typeof authControllerLogout>>,
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<TData, TError, void, TContext>;
+}) => {
+  const mutationKey = ["authControllerLogout"];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof authControllerLogout>>,
+    void
+  > = () => {
+    return authControllerLogout();
+  };
+
+  return { mutationFn, ...mutationOptions } as UseMutationOptions<
+    TData,
+    TError,
+    void,
+    TContext
+  >;
+};
+
+export type AuthControllerLogoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof authControllerLogout>>
+>;
+
+export type AuthControllerLogoutMutationError = unknown;
+
+export const useAuthControllerLogout = <
+  TData = Awaited<ReturnType<typeof authControllerLogout>>,
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<TData, TError, void, TContext>;
+}): UseMutationResult<TData, TError, void, TContext> => {
+  const mutationOptions = getAuthControllerLogoutMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
+
+export const usersControllerMe = (signal?: AbortSignal) => {
+  return axiosInstance<UserResponseDto>({
+    url: `/api/users/me`,
+    method: "GET",
+    signal,
+  });
+};
+
+export const getUsersControllerMeQueryKey = () => {
+  return [`/api/users/me`] as const;
+};
+
+export const getUsersControllerMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof usersControllerMe>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof usersControllerMe>>,
+      TError,
+      TData
+    >
+  >;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getUsersControllerMeQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof usersControllerMe>>
+  > = ({ signal }) => usersControllerMe(signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof usersControllerMe>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type UsersControllerMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof usersControllerMe>>
+>;
+export type UsersControllerMeQueryError = unknown;
+
+export function useUsersControllerMe<
+  TData = Awaited<ReturnType<typeof usersControllerMe>>,
+  TError = unknown,
+>(options: {
+  query: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof usersControllerMe>>,
+      TError,
+      TData
+    >
+  > &
+    Pick<
+      DefinedInitialDataOptions<
+        Awaited<ReturnType<typeof usersControllerMe>>,
+        TError,
+        TData
+      >,
+      "initialData"
+    >;
+}): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useUsersControllerMe<
+  TData = Awaited<ReturnType<typeof usersControllerMe>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof usersControllerMe>>,
+      TError,
+      TData
+    >
+  > &
+    Pick<
+      UndefinedInitialDataOptions<
+        Awaited<ReturnType<typeof usersControllerMe>>,
+        TError,
+        TData
+      >,
+      "initialData"
+    >;
+}): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useUsersControllerMe<
+  TData = Awaited<ReturnType<typeof usersControllerMe>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof usersControllerMe>>,
+      TError,
+      TData
+    >
+  >;
+}): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useUsersControllerMe<
+  TData = Awaited<ReturnType<typeof usersControllerMe>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof usersControllerMe>>,
+      TError,
+      TData
+    >
+  >;
+}): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getUsersControllerMeQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;

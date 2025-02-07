@@ -9,6 +9,7 @@
 export * from "./createUserDto";
 export * from "./signinDto";
 export * from "./signupDto";
+export * from "./tokenDto";
 export * from "./updateUserDto";
 export * from "./userResponseDto";
 export * from "./userResponseDtoRole";

@@ -1,5 +1,6 @@
 import { ZodSerializerDto } from "nestjs-zod";
 
+import { CurrentUser } from "@/auth/decorators/current-user.decorator";
 import { RestrictTo } from "@/auth/decorators/roles.decorator";
 import { RolesGuard } from "@/auth/guards/roles.guard";
 import { UuidValidationPipe } from "@/pipes/uuid.pipe";
@@ -13,6 +14,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Header,
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
@@ -29,6 +31,14 @@ import { UsersService } from "./users.service";
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get("/me")
+  @ApiOkResponse({ type: UserResponseDto })
+  @ZodSerializerDto(UserResponseDto)
+  @Header("Cache-Control", "no-store, no-cache, must-revalidate")
+  async me(@CurrentUser() user: UserResponseDto) {
+    return user;
+  }
 
   @Post()
   @ApiCreatedResponse({ type: UserResponseDto })

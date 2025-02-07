@@ -8,10 +8,11 @@ import { AuthService } from "./auth.service";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { Public } from "./decorators/public.decorator";
 import { SigninDto, SignupDto } from "./dto/signin.dto";
+import { TokenDto } from "./dto/token.dto";
 import { GoogleAuthGuard } from "./google/google-auth.guard";
+import { JwtAuthGuard } from "./jwt/jwt-auth.guard";
 import { RefreshJwtAuthGuard } from "./jwt/refresh-jwt-auth.guard";
 
-@Public()
 @Controller("auth")
 export class AuthController {
   constructor(
@@ -19,16 +20,21 @@ export class AuthController {
     private readonly apiConfigService: ApiConfigService
   ) {}
 
+  @Public()
   @Post("signin")
+  @ApiOkResponse({ type: TokenDto })
   async signin(@Body() dto: SigninDto) {
     return this.authService.signin(dto);
   }
 
+  @Public()
   @Post("signup")
+  @ApiOkResponse({ type: TokenDto })
   async signup(@Body() dto: SignupDto) {
     return this.authService.signup(dto);
   }
 
+  @Public()
   @Get("google/login")
   @UseGuards(GoogleAuthGuard)
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -38,6 +44,7 @@ export class AuthController {
    * This route is called after the user has authenticated with Google.
    * In google cloud we set the redirect URI to /api/auth/google/redirect
    */
+  @Public()
   @Get("google/callback")
   @UseGuards(GoogleAuthGuard)
   @ApiOkResponse()
@@ -52,9 +59,18 @@ export class AuthController {
     );
   }
 
+  @Public()
   @Post("refresh")
   @UseGuards(RefreshJwtAuthGuard)
+  @ApiOkResponse({ type: TokenDto })
   async refreshToken(@CurrentUser("id") userId: string) {
     return this.authService.refreshToken(userId);
+  }
+
+  @Post("logout")
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse()
+  async logout(@CurrentUser("id") userId: string) {
+    return this.authService.logOut(userId);
   }
 }

@@ -8,6 +8,7 @@ import { JwtTokenModule } from "./jwt-token/jwt-token.module";
 import { JwtStrategy } from "./jwt/jwt.strategy";
 import { RefreshJwtStrategy } from "./jwt/refresh-jwt.strategy";
 import { PasswordService } from "./password.service";
+import { RefreshTokenService } from "./refresh-token.service";
 
 @Module({
   imports: [JwtTokenModule, UsersModule],
@@ -18,6 +19,7 @@ import { PasswordService } from "./password.service";
     RefreshJwtStrategy,
     GoogleStrategy,
     PasswordService,
+    RefreshTokenService,
   ],
 })
 export class AuthModule {}
